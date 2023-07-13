@@ -6,6 +6,7 @@ require 'csv'
 require 'google/apis/civicinfo_v2'
 require 'googleauth'
 require 'erb'
+require 'time'
 
 puts 'Event manager initialized'
 
@@ -49,6 +50,10 @@ def clean_phone_numbers(phone_number)
   end
 end
 
+def time_targeting(time, target)
+  target[time]
+end
+
 contents = CSV.open(
   'event_attendees.csv',
   headers: true,
@@ -58,12 +63,17 @@ contents = CSV.open(
 template_letter = File.read('form_letter.erb')
 erb_template = ERB.new template_letter
 
+target = {}
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
   zipcode = clean_zipcode(row[:zipcode])
-  phone_number = clean_phone_numbers(row[5])
-  puts phone_number
+  phone_number = clean_phone_numbers(row[:homephone])
+  # puts phone_number
+  time = Time.strptime(row[:regdate], '%m/%d/%Y %k:%M')
+  time.year += 2000
+  puts time
+  # puts time_targeting(row[:regdate], target)
 
   legislators = legislators_by_zipcode(zipcode)
 
